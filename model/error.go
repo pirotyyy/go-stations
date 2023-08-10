@@ -4,6 +4,6 @@ type ErrNotFound struct {
 	Message string
 }
 
-func (e ErrNotFound) Error() string {
-	return e.Message
+func (e *ErrNotFound) Error() string {
+	return "not found"
 }

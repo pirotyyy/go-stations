@@ -73,7 +73,7 @@ func (s *TODOService) UpdateTODO(ctx context.Context, id int64, subject, descrip
 		return nil, err
 	}
 	if row == 0 {
-		return nil, model.ErrNotFound{Message: "record not found"}
+		return nil, &model.ErrNotFound{}
 	}
 
 	todo := &model.TODO{
