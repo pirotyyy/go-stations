@@ -23,9 +23,9 @@ func NewTODOHandler(svc *service.TODOService) *TODOHandler {
 }
 
 func (t *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	req := &model.CreateTODORequest{}
-	dec := json.NewDecoder(r.Body)
 	if r.Method == http.MethodPost {
+		req := &model.CreateTODORequest{}
+		dec := json.NewDecoder(r.Body)
 		if err := dec.Decode(&req); err != nil {
 			log.Println(err)
 			return
@@ -40,6 +40,28 @@ func (t *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		res := &model.CreateTODOResponse{
+			TODO: *todo,
+		}
+		if err := json.NewEncoder(w).Encode(res); err != nil {
+			log.Println(err)
+			return
+		}
+	} else if r.Method == http.MethodPut {
+		req := &model.UpdateTODORequest{}
+		dec := json.NewDecoder(r.Body)
+		if err := dec.Decode(&req); err != nil {
+			log.Println(err)
+			return
+		}
+		if req.Subject == "" || req.ID == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		todo, err := t.svc.UpdateTODO(r.Context(), req.ID, req.Subject, req.Description)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+		}
+		res := &model.UpdateTODOResponse{
 			TODO: *todo,
 		}
 		if err := json.NewEncoder(w).Encode(res); err != nil {
