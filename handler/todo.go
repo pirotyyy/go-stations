@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/TechBowl-japan/go-stations/model"
 	"github.com/TechBowl-japan/go-stations/service"
@@ -64,6 +65,60 @@ func (t *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		res := &model.UpdateTODOResponse{
 			TODO: *todo,
 		}
+		if err := json.NewEncoder(w).Encode(res); err != nil {
+			log.Println(err)
+			return
+		}
+	} else if r.Method == http.MethodGet {
+		req := &model.ReadTODORequest{}
+		v := r.URL.Query()
+
+		if prevIdStr := v.Get("prev_id"); prevIdStr != "" {
+			prevId, err := strconv.ParseInt(prevIdStr, 10, 64)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			req.PrevID = prevId
+		}
+
+		if sizeStr := v.Get("size"); sizeStr != "" {
+			size, err := strconv.ParseInt(sizeStr, 10, 64)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			req.Size = size
+		}
+
+		todos, err := t.svc.ReadTODO(r.Context(), req.PrevID, req.Size)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		res := &model.ReadTODOResponse{
+			TODOs: todos,
+		}
+		if err := json.NewEncoder(w).Encode(res); err != nil {
+			log.Println(err)
+			return
+		}
+	} else if r.Method == http.MethodDelete {
+		req := &model.DeleteTODORequest{}
+		dec := json.NewDecoder(r.Body)
+		if err := dec.Decode(&req); err != nil {
+			log.Println(err)
+			return
+		}
+		if len(req.IDs) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if err := t.svc.DeleteTODO(r.Context(), req.IDs); err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		res := &model.DeleteTODOResponse{}
 		if err := json.NewEncoder(w).Encode(res); err != nil {
 			log.Println(err)
 			return
