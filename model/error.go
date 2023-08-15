@@ -7,3 +7,7 @@ type ErrNotFound struct {
 func (e *ErrNotFound) Error() string {
 	return "not found"
 }
+
+type ErrUnauthorized struct {
+	Message string `json:"message"`
+}

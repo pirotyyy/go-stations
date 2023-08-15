@@ -8,6 +8,7 @@ import (
 
 	"github.com/TechBowl-japan/go-stations/db"
 	"github.com/TechBowl-japan/go-stations/handler/router"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -32,6 +33,11 @@ func realMain() error {
 	dbPath := os.Getenv("DB_PATH")
 	if dbPath == "" {
 		dbPath = defaultDBPath
+	}
+
+	envErr := godotenv.Load(".env")
+	if envErr != nil {
+		return envErr
 	}
 
 	// set time zone
